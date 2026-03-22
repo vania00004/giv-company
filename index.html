@@ -880,5 +880,75 @@
             startBlink(); updateFavicon('#00f7ff');
         })();
     </script>
+    <script>
+    // ПРИНУДИТЕЛЬНАЯ ПРОВЕРКА СЧЁТЧИКОВ
+    setTimeout(() => {
+        const countersSection = document.querySelector('.counters-section');
+        if (countersSection) {
+            const rect = countersSection.getBoundingClientRect();
+            const isVisible = rect.top < window.innerHeight - 100;
+            if (isVisible) {
+                animateCounter(document.getElementById('projectsCounter'), 47);
+                animateCounter(document.getElementById('clientsCounter'), 32);
+                animateCounter(document.getElementById('hoursCounter'), 1250);
+                animateCounter(document.getElementById('yearsCounter'), 3);
+            }
+        }
+        
+        // ПРИНУДИТЕЛЬНАЯ ПРОВЕРКА АНИМАЦИЙ
+        document.querySelectorAll('.fade-up').forEach(el => {
+            const rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight - 50) {
+                el.classList.add('visible');
+            }
+        });
+    }, 1000);
+    
+    // ПЕРЕОПРЕДЕЛЯЕМ ФУНКЦИЮ АНИМАЦИИ СЧЁТЧИКОВ (на всякий случай)
+    function animateCounter(element, end) {
+        if (!element) return;
+        let start = 0;
+        const duration = 2000;
+        const startTime = performance.now();
+        function step(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            element.textContent = Math.floor(progress * end);
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                element.textContent = end;
+            }
+        }
+        requestAnimationFrame(step);
+    }
+    
+    // ДУБЛИРУЕМ ОБСЕРВЕР ДЛЯ СЧЁТЧИКОВ (на случай если не сработал)
+    const counterCheck = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter(document.getElementById('projectsCounter'), 47);
+                animateCounter(document.getElementById('clientsCounter'), 32);
+                animateCounter(document.getElementById('hoursCounter'), 1250);
+                animateCounter(document.getElementById('yearsCounter'), 3);
+                counterCheck.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.3 });
+    
+    const countersDiv = document.querySelector('.counters-section');
+    if (countersDiv) counterCheck.observe(countersDiv);
+    
+    // ДУБЛИРУЕМ ОБСЕРВЕР ДЛЯ АНИМАЦИЙ
+    const fadeCheck = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    document.querySelectorAll('.fade-up').forEach(el => fadeCheck.observe(el));
+</script>
 </body>
 </html>
